@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Marca d'Água: riscos de segurança e proteção da API (Cybersecurity)</title>
+<style>
+  @page { size: A4; margin: 22mm 20mm 22mm 20mm; }
+  :root { --tinta: #111827; --apoio: #4b5563; --azul: #0b3d91; --linha: #c9ced6; --fundo-cod: #f3f4f6; --aviso: #fff4cc; }
+  * { box-sizing: border-box; }
+  body { font-family: Georgia, "Times New Roman", serif; font-size: 11pt; line-height: 1.5; color: var(--tinta); margin: 0; }
+  h1, h2, h3, .capa, table, figcaption, .pendente, .nota { font-family: "Segoe UI", Arial, sans-serif; }
+  h2 { font-size: 16pt; color: var(--azul); margin: 26pt 0 8pt; padding-bottom: 4pt; border-bottom: 2px solid var(--azul); break-after: avoid; }
+  h3 { font-size: 12pt; margin: 16pt 0 4pt; break-after: avoid; }
+  p { margin: 0 0 8pt; text-align: left; }
+  ul, ol { margin: 0 0 8pt; padding-left: 18pt; }
+  li { margin-bottom: 3pt; }
+  a { color: var(--azul); }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; margin: 6pt 0 12pt; }
+  tr { break-inside: avoid; }
+  thead { display: table-header-group; }
+  th, td { border: 1px solid var(--linha); padding: 3.5pt 5pt; text-align: left; vertical-align: top; }
+  th { background: #e8edf7; }
+  td.c, th.c { text-align: center; }
+  code, pre { font-family: Consolas, "Courier New", monospace; }
+  code { font-size: 9pt; }
+  pre { background: var(--fundo-cod); border: 1px solid var(--linha); padding: 7pt 9pt; font-size: 8pt; line-height: 1.35; white-space: pre-wrap; word-break: break-all; margin: 4pt 0 10pt; break-inside: avoid; }
+  pre.diagrama { word-break: normal; white-space: pre; font-size: 7.5pt; }
+  blockquote { margin: 4pt 0 10pt; padding: 4pt 0 4pt 12pt; border-left: 4px solid var(--azul); color: var(--tinta); }
+  figure { margin: 8pt 0 12pt; break-inside: avoid; }
+  figure img { max-width: 100%; max-height: 110mm; display: block; border: 1px solid var(--linha); }
+  figcaption { font-size: 8.5pt; color: var(--apoio); margin-top: 3pt; }
+  .pendente { border: 2px dashed #b45309; background: var(--aviso); padding: 10pt 10pt; font-size: 9.5pt; margin: 8pt 0 12pt; break-inside: avoid; }
+  .nota { font-size: 9pt; color: var(--apoio); }
+  .capa { min-height: 245mm; display: flex; flex-direction: column; justify-content: space-between; break-after: page; }
+  .capa .faixa { border-left: 10px solid var(--azul); padding-left: 16pt; margin-top: 50mm; }
+  .capa .disc { font-size: 11pt; text-transform: uppercase; letter-spacing: 1px; color: var(--apoio); margin: 0 0 12pt; }
+  .capa h1 { font-size: 34pt; line-height: 1.1; margin: 0 0 10pt; }
+  .capa .sub { font-size: 14pt; color: var(--apoio); margin: 0; }
+  .capa .autores { font-size: 12pt; }
+  .capa .autores p { margin: 0 0 3pt; }
+  .capa .rodape { font-size: 9.5pt; color: var(--apoio); }
+  .quebra { break-before: page; }
+</style>
+</head>
+<body>
+
+<section class="capa">
+  <div class="faixa">
+    <p class="disc">Cybersecurity, Global Solution 2026.2</p>
+    <h1>Marca d'Água</h1>
+    <p class="sub">Riscos de segurança do sistema e proteção aplicada à API</p>
+  </div>
+  <div class="autores">
+    <p>Rafael Gonçalves, RM 569461</p>
+    <p>Charles Augusto, RM 571908</p>
+  </div>
+  <div class="rodape">
+    <p>Tecnólogo em Inteligência Artificial, turma 1TIAP, FIAP. Novembro de 2026.</p>
+    <p>Repositório: <a href="https://github.com/rafaelgoncalvesml/marca-dagua-gs2026-publico">github.com/rafaelgoncalvesml/marca-dagua-gs2026-publico</a></p>
+    <p>O nó e o app do morador são simulados. A seção 12 diz o que foi executado e o que só foi lido no código.</p>
+  </div>
+</section>
+
+<h2 style="margin-top:0">1. Resumo</h2>
+<p>O Marca d'Água é um nó comunitário com ESP32 que mede o nível da água e a chuva em áreas de risco de Porto Alegre, avisa no local e envia as leituras a uma API. Na nuvem, uma API do API Gateway chama uma função Lambda que confere a chave do dispositivo, valida e classifica a leitura, grava no DynamoDB e publica uma métrica no CloudWatch. Um alarme sobre essa métrica manda e-mail pelo SNS quando a leitura é de alerta. Este relatório analisa os riscos de segurança do sistema inteiro, inclusive da nuvem, descreve os controles, mostra a proteção aplicada à API e trata de privacidade e LGPD. Foi atualizado em 16/11/2026 para refletir a nuvem que foi implantada e testada em 15/11.</p>
+<ul>
+  <li>Foram levantados 10 ativos e 15 ameaças, pontuadas por probabilidade e impacto.</li>
+  <li>Três prioridades guiaram a proteção: acesso sem autenticação, excesso de chamadas e custo, e a permissão ampla da função na nuvem.</li>
+  <li>A API em Python passou a exigir chave por dispositivo, tem chave de leitura separada, limita a 60 requisições por minuto e a corpos de 8 KB, e não sobe sem as chaves. Os 45 testes passam, e uma prova com a API no ar mostrou 401, 403, 413 e 429.</li>
+  <li>Na nuvem, o teste na conta real devolveu 201 nos três cenários, 409 na leitura repetida e 401 com chave inválida, e o alarme levou ao e-mail do SNS.</li>
+  <li>O que ficou como risco aceito: a chave guardada no firmware do nó, a função usando a LabRole do Learner Lab, que é ampla, e o aviso ao morador ser só um e-mail para quem assinou o tópico.</li>
+  <li>O texto de LGPD é um rascunho para revisão jurídica e não afirma conformidade com a lei.</li>
+</ul>
+
+<h2>2. Sistema, escopo e premissas</h2>
+<pre class="diagrama">Nó ESP32 (nível, chuva, temperatura, umidade; LED e buzzer)
+   | (1) internet, HTTPS
+   +--> API FastAPI (local, via túnel na demonstração) -> CSV
+   |
+   +--> API Gateway (POST /leituras, 5 req/s)
+            | (2) só o API Gateway pode invocar a função
+            v
+        Lambda marca-dagua-ingestao (perfil LabRole)
+            | (3) PutItem                  | métrica Alertas
+            v                              v
+        DynamoDB                      CloudWatch -> alarme -> SNS -> e-mail
+
+Modelo de dados (Oracle e MongoDB): dados fictícios, sem ligação com a nuvem</pre>
+<p>Quatro fronteiras concentram o risco. A primeira fica entre o nó e a internet. A segunda é a entrada pública, o endereço do API Gateway e a API local. A terceira é a permissão da função sobre a conta, que no Learner Lab é a LabRole, ampla. A quarta é a saída do alerta, o e-mail do SNS, que chega só a quem assinou o tópico.</p>
+<p>Premissas do protótipo:</p>
+<ul>
+  <li>O nó é simulado no Wokwi. O teste da nuvem usou um simulador de leituras, não o ESP32 do Wokwi.</li>
+  <li>O cadastro de moradores existe só como modelo no Oracle, com dados fictícios, e os relatos como exemplos fictícios no MongoDB. Nenhum dos dois está ligado à nuvem. O envio de SMS é evolução futura.</li>
+  <li>O modelo de Machine Learning não está ligado à API nem à Lambda.</li>
+  <li>As afirmações sobre a nuvem vêm do relatório de AWS de 15/11, testado na conta real do Learner Lab, do código da Lambda e das capturas de <code>aws/evidencias/</code>.</li>
+</ul>
+<p class="nota">Não consta no relatório de AWS: concorrência reservada na função, alerta de orçamento, retenção do log do CloudWatch e expiração (TTL) da tabela. Por isso aparecem neste relatório como limitação, e não como controle.</p>
+
+<h2>3. Ativos</h2>
+<table>
+<thead><tr><th style="width:7%">ID</th><th style="width:33%">Ativo</th><th>O que mais importa proteger</th></tr></thead>
+<tr><td>A1</td><td>Leituras do nó (nível, chuva, temperatura, umidade)</td><td>Integridade: uma leitura falsa gera alerta falso ou esconde um alerta real</td></tr>
+<tr><td>A2</td><td>Relatos de moradores (hoje só no MongoDB de demonstração, fictícios)</td><td>Confidencialidade: texto livre pode trazer nome, endereço, situação de saúde</td></tr>
+<tr><td>A3</td><td>Tabela <code>marca_dagua_leituras</code> no DynamoDB</td><td>Integridade e disponibilidade do histórico</td></tr>
+<tr><td>A4</td><td>Perfil de execução da função (LabRole)</td><td>Quanto dano uma função comprometida consegue fazer na conta</td></tr>
+<tr><td>A5</td><td>Disponibilidade do aviso</td><td>Disponibilidade: o sistema vale mais justamente quando a rede está ruim</td></tr>
+<tr><td>A6</td><td>Função Lambda, API Gateway e API local</td><td>Integridade do código e controle de quem chama</td></tr>
+<tr><td>A7</td><td>Chave de cada dispositivo e chave de leitura da API local</td><td>Confidencialidade: quem tem a chave fala em nome do nó</td></tr>
+<tr><td>A8</td><td>Repositório Git</td><td>Ausência de segredos no código e no histórico</td></tr>
+<tr><td>A9</td><td>Cadastro de moradores (hoje só modelo, com dados fictícios)</td><td>Confidencialidade: nome, telefone e e-mail são dado pessoal</td></tr>
+<tr><td>A10</td><td>E-mail do assinante do tópico SNS</td><td>Confidencialidade: é dado pessoal tratado pela AWS</td></tr>
+</table>
+
+<h2>4. Método de pontuação</h2>
+<p>Cada ameaça recebe probabilidade (P) e impacto (I) de 1 a 3. O risco é P × I: de 1 a 2 é baixo, de 3 a 4 é médio e 6 ou mais é alto. O "risco atual" considera só os controles já feitos, na API e na nuvem. O "risco previsto" considera também os planejados. A pontuação é um julgamento para ordenar o trabalho e não é uma medida. Esta versão reavalia a de 12/11 depois da troca de arquitetura da nuvem, e a dupla ainda precisa confirmar a pontuação.</p>
+
+<h2>5. Matriz de risco</h2>
+<table>
+<thead><tr><th style="width:6%">ID</th><th>Ameaça</th><th style="width:18%">Onde</th><th class="c" style="width:4%">P</th><th class="c" style="width:4%">I</th><th style="width:11%">Risco atual</th><th style="width:11%">Risco previsto</th></tr></thead>
+<tr><td>T01</td><td>Leitura falsa enviada com chave roubada ou extraída do firmware</td><td>API, Lambda</td><td class="c">1</td><td class="c">3</td><td>3 médio</td><td>3 médio</td></tr>
+<tr><td>T02</td><td>Leitura pública dos dados</td><td>API local</td><td class="c">1</td><td class="c">2</td><td>2 baixo</td><td>2 baixo</td></tr>
+<tr><td>T03</td><td>Permissão ampla da função (LabRole)</td><td>Lambda, conta AWS</td><td class="c">2</td><td class="c">2</td><td>4 médio</td><td>2 baixo</td></tr>
+<tr><td>T04</td><td>Excesso de chamadas, custo e esgotamento de cota</td><td>API Gateway, Lambda, DynamoDB</td><td class="c">2</td><td class="c">2</td><td>4 médio</td><td>2 baixo</td></tr>
+<tr><td>T05</td><td>Dado pessoal em relato livre ou em log</td><td>Lambda, CloudWatch</td><td class="c">1</td><td class="c">2</td><td>2 baixo</td><td>2 baixo</td></tr>
+<tr><td>T06</td><td>Túnel da demonstração expõe a API local</td><td>Túnel, sketch</td><td class="c">2</td><td class="c">2</td><td>4 médio</td><td>2 baixo</td></tr>
+<tr><td>T07</td><td>Falso senso de segurança causado pelo modelo de ML</td><td>ML, aviso ao morador</td><td class="c">2</td><td class="c">2</td><td>4 médio</td><td>2 baixo</td></tr>
+<tr><td>T08</td><td>Segredo exposto (chave do dispositivo, chaves da API)</td><td>Repositório, Lambda, terminal</td><td class="c">1</td><td class="c">3</td><td>3 médio</td><td>2 baixo</td></tr>
+<tr><td>T09</td><td>Interceptação entre o nó e a API local</td><td>Nó</td><td class="c">1</td><td class="c">3</td><td>3 médio</td><td>3 médio</td></tr>
+<tr><td>T10</td><td>Nó ou rede fora do ar durante a enchente</td><td>Nó, rede</td><td class="c">3</td><td class="c">1</td><td>3 médio</td><td>3 médio</td></tr>
+<tr><td>T11</td><td>Cadastro de moradores sem proteção (quando for ligado ao alerta)</td><td>Cadastro</td><td class="c">1</td><td class="c">3</td><td>3 médio</td><td>3 médio</td></tr>
+<tr><td>T12</td><td>Entrada maliciosa ou fora do formato</td><td>API, Lambda</td><td class="c">1</td><td class="c">1</td><td>1 baixo</td><td>1 baixo</td></tr>
+<tr><td>T13</td><td>Reenvio de leitura antiga</td><td>API, Lambda</td><td class="c">1</td><td class="c">1</td><td>1 baixo</td><td>1 baixo</td></tr>
+<tr><td>T14</td><td>O aviso não chega ao morador (e-mail só para assinantes, sem reenvio)</td><td>SNS, alarme</td><td class="c">2</td><td class="c">3</td><td>6 alto</td><td>4 médio</td></tr>
+<tr><td>T15</td><td>Dependências vulneráveis ou sem versão fixa</td><td>API local</td><td class="c">1</td><td class="c">2</td><td>2 baixo</td><td>1 baixo</td></tr>
+</table>
+<p class="nota">T01 e T02 caíram porque a Lambda passou a exigir chave por dispositivo e não tem rota de leitura. O banco aberto à internet e o token da IA saíram junto com o RDS e a Hugging Face. T13 caiu porque a Lambda também recusa <code>device_id</code> e <code>seq</code> repetidos. T14 é o único risco alto que sobrou: o alerta aos moradores hoje é um e-mail para quem assinou o tópico.</p>
+
+<h2>6. As três prioridades</h2>
+<p>A ordem segue duas perguntas: o que atrapalha a função principal do sistema, que é avisar a tempo, e o que cabe nos dias de implementação. A primeira prioridade reúne T01 e T02, que têm o mesmo controle. A terceira, que era o banco RDS aberto à internet, foi trocada pela permissão ampla da função, porque o RDS saiu do projeto.</p>
+
+<h3>6.1 Acesso sem autenticação (T01 e T02)</h3>
+<p>Quem souber a URL grava leituras em nome de qualquer nó. Um POST com <code>nivel_cm: 0</code> durante uma enchente apaga o aviso na nuvem. Um POST com <code>nivel_cm: 900</code> dispara um alerta falso, e alertas falsos repetidos ensinam o morador a ignorar o aviso. O endereço aparece no relatório e no vídeo, então não dá para contar com sigilo. É o risco que ataca o que o projeto promete, o alerta confiável.</p>
+<p>Estado antes do controle, medido na API local: um POST com leitura forjada e sem chave devolveu 201, e o GET de <code>/leituras</code> e de <code>/indicadores</code> devolveu 200 para qualquer pessoa. A API já validava tipo e faixa dos campos, reclassificava o risco no servidor (ignorando o <code>status</code> e o <code>risco</code> enviados pelo dispositivo) e recusava o mesmo <code>seq</code> repetido (409). O alerta local do nó, com LED e buzzer, não depende da nuvem.</p>
+<p>Controle aplicado na API:</p>
+<ul>
+  <li>Uma chave por dispositivo, no cabeçalho <code>X-API-Key</code>, lida da variável de ambiente <code>MD_API_KEYS</code> e nunca do código. A comparação é em tempo constante.</li>
+  <li>A chave só vale para o <code>device_id</code> a que pertence, para um nó não assinar por outro (403). Sem chave ou com chave errada, a resposta é 401.</li>
+  <li>A consulta (GET) pede uma chave de leitura separada, no cabeçalho <code>X-Read-Key</code>, que não assina leituras.</li>
+  <li>A API não sobe sem as duas variáveis de ambiente.</li>
+</ul>
+<p>Controle aplicado na nuvem, conforme o relatório de AWS de 15/11:</p>
+<ul>
+  <li>Cabeçalho <code>x-api-key</code> por dispositivo, validado contra <code>DEVICE_KEYS</code>. Chave errada e dispositivo desconhecido recebem o mesmo 401, sem revelar qual falhou. A autenticação vem antes da validação dos campos, então quem não tem chave não testa as regras.</li>
+  <li>A política da função só aceita invocação do API Gateway, pela rota <code>/leituras</code> desta API.</li>
+  <li>A Lambda não tem rota de leitura: só recebe POST e grava no DynamoDB.</li>
+  <li>O risco é sempre recalculado no servidor, e o <code>status</code> e o <code>risco</code> enviados pelo dispositivo são ignorados.</li>
+</ul>
+<p>No teste ponta a ponta na conta real, o script <code>testar_ingestao.py</code> devolveu 201 nos três cenários, 409 na repetida e 401 com chave inválida (captura <code>aws/evidencias/06-teste-ponta-a-ponta.png</code>).</p>
+<p>Risco que sobra: a chave fica gravada no firmware, e quem tiver o aparelho e souber extrair a memória a obtém. A chave do dispositivo na nuvem foi rotacionada depois de aparecer em testes, segundo o relatório de AWS. Para o protótipo isso se aceita. Em produção, a saída é chave por aparelho com rotação, proteção da memória flash do ESP32 e as chaves no Secrets Manager.</p>
+
+<h3>6.2 Excesso de chamadas, custo e cota (T04)</h3>
+<p>Um laço de POST gera uma invocação da Lambda e uma gravação no DynamoDB por chamada. O resultado possível é custo inesperado na conta AWS e o aviso indisponível justamente na enchente.</p>
+<p>Estado antes do controle, medido na API local: 60 POSTs seguidos foram todos aceitos, e um corpo de 2 MB também.</p>
+<p>Controle aplicado:</p>
+<ul>
+  <li>No API Gateway, limite de 5 requisições por segundo e rajada de 10 na rota. Na Lambda, corpo de até 2 KB (413). O DynamoDB está em modo sob demanda.</li>
+  <li>Na API Python, 60 requisições por minuto por chave, o dobro do ritmo normal do nó, que envia uma leitura a cada 2 segundos. Ao exceder, a resposta é 429 com o cabeçalho <code>Retry-After</code>. Tentativas sem chave válida também contam, por endereço.</li>
+  <li>Na API Python, corpo de até 8 KB (413 acima disso) e <code>Content-Length</code> obrigatório no POST (411).</li>
+</ul>
+<p>Risco que sobra: o limite da API Python fica na memória de um processo, então não vale com várias instâncias, e o do API Gateway é por rota, não por dispositivo. Concorrência reservada na função e alerta de orçamento na conta não constam no relatório de AWS e ficam como limitação até alguém confirmar no console.</p>
+
+<h3>6.3 Permissão ampla da função (T03)</h3>
+<p>No Learner Lab não é possível criar perfis de acesso, então a função usa a LabRole, que tem permissões muito maiores que as necessárias. Se alguém conseguir executar código na função, age na conta com essa permissão. A função só precisa gravar uma leitura no DynamoDB e escrever log, e a LabRole não reflete esse privilégio mínimo.</p>
+<p>Controles existentes: a política da função só deixa o API Gateway invocá-la, a Lambda não executa o que recebe e só faz <code>PutItem</code>, e não usa pacote externo além do que vem no ambiente (<code>boto3</code>). As capturas <code>aws/evidencias/03-lambda-perfil-labrole.png</code> e <code>04-lambda-politica-recursos.png</code> mostram o perfil e a política.</p>
+<p>Controle a aplicar em produção: um perfil próprio com <code>AWSLambdaBasicExecutionRole</code> e uma política embutida só com <code>dynamodb:PutItem</code> no ARN da tabela. Fica registrado como limitação conhecida.</p>
+
+<h2>7. As ameaças da nuvem</h2>
+<table>
+<thead><tr><th style="width:26%">Ameaça da nuvem</th><th style="width:16%">Onde está</th><th>Situação</th></tr></thead>
+<tr><td>Banco RDS aberto à internet</td><td>Antiga T03</td><td>Não se aplica mais. O projeto usa DynamoDB, sem porta de banco aberta. O risco virou a permissão ampla da LabRole (T03, seção 6.3)</td></tr>
+<tr><td>Function URL sem autenticação</td><td>T01 e T02, seção 6.1</td><td>Substituída por API Gateway com chave por dispositivo. Feito e testado (401 sem chave válida)</td></tr>
+<tr><td>Token da IA</td><td>Antiga T08</td><td>Não se aplica mais. A Hugging Face saiu do projeto e não há token de IA</td></tr>
+<tr><td>Custo por excesso de chamadas</td><td>T04, seção 6.2</td><td>Limite de taxa feito no API Gateway e na API. Concorrência reservada e alerta de orçamento não constam</td></tr>
+</table>
+
+<h2 class="quebra">8. Proteção aplicada à API e prova</h2>
+<h3>8.1 O que a API responde em cada situação</h3>
+<table>
+<thead><tr><th style="width:62%">Situação, na ordem de checagem</th><th>Resposta</th></tr></thead>
+<tr><td>POST sem <code>Content-Length</code></td><td>411</td></tr>
+<tr><td>Corpo com mais de 8 KB</td><td>413</td></tr>
+<tr><td>Mais de 60 requisições por minuto da mesma chave, ou do mesmo endereço quando não há chave válida</td><td>429, com <code>Retry-After</code></td></tr>
+<tr><td>Chave ausente, errada ou não configurada</td><td>401, com <code>WWW-Authenticate: ApiKey</code></td></tr>
+<tr><td>Chave válida, mas de outro dispositivo que o do corpo (<code>device_id</code>)</td><td>403</td></tr>
+</table>
+<h3>8.2 Configuração</h3>
+<table>
+<thead><tr><th style="width:28%">Variável de ambiente</th><th>Para que serve</th></tr></thead>
+<tr><td><code>MD_API_KEYS</code></td><td>Pares <code>dispositivo:chave</code> separados por vírgula. Cada dispositivo tem a sua</td></tr>
+<tr><td><code>MD_READ_KEY</code></td><td>Chave de quem consulta o histórico (<code>GET /leituras</code> e <code>/indicadores</code>)</td></tr>
+<tr><td><code>MD_LIMITE_POR_MINUTO</code></td><td>Requisições por minuto de cada chave. Padrão 60</td></tr>
+</table>
+<p>As chaves vêm do ambiente, nunca do código nem do Git. O <code>python-api/.env.example</code> documenta os nomes, sem valores. No sketch do nó, a chave é uma constante de exemplo, e a chave real é colada só no Wokwi, na hora da demonstração.</p>
+<h3>8.3 Testes</h3>
+<p>Os testes foram escritos antes do código. A suíte da API tem 45 testes, 21 anteriores e 24 de segurança, e todos passam:</p>
+<!--TXT ciberseguranca/evidencias/pytest-saida.txt-->
+<p>Para saber se os testes pegam regressões, foram feitas duas mutações: sem a checagem de dono da chave, o teste do 403 falhou, e com o limite desligado, quatro testes de limite falharam.</p>
+<h3>8.4 Prova com a API no ar</h3>
+<p>O script <code>python-api/prova_protecao.py</code> roda a sequência completa contra a API e imprime um quadro. A saída abaixo é a de uma execução real, em 12/11/2026. A rajada tem 65 chamadas seguidas com a chave certa, e o primeiro 429 veio na chamada 59 porque duas chamadas anteriores do quadro já tinham gasto a cota do minuto. As chaves não aparecem na saída nem no log do servidor.</p>
+<!--TXT ciberseguranca/evidencias/prova-protecao-saida.txt-->
+<!--IMG 14-01-prova-protecao.png|Quadro da prova de proteção, com o comando e a linha final "Tudo como esperado."-->
+<!--IMG 14-02-api-subiu-com-chaves.png|Terminal da API no ar, com as chamadas 401, 201, 403, 413 e 429-->
+<!--IMG 14-03-testes.png|Execução do pytest com 45 testes passando-->
+<h3>8.5 Outras verificações</h3>
+<ul>
+  <li>A API recusa subir sem <code>MD_API_KEYS</code> ou sem <code>MD_READ_KEY</code>, e diz qual faltou.</li>
+  <li>Os três cenários do script <code>cenarios.py</code> passam com as chaves, e o script avisa e para quando elas faltam.</li>
+  <li>As chaves não aparecem no log do servidor. A busca por padrões de chave e senha no repositório não achou nada, e nenhum arquivo <code>.env</code>, <code>.pem</code> ou <code>.key</code> está versionado.</li>
+  <li>A auditoria de dependências (<code>pip-audit</code>) não achou vulnerabilidade conhecida. As versões ainda estão com <code>&gt;=</code>, e fixá-las depois da última instalação é pendência.</li>
+</ul>
+
+<h2>9. Demais ameaças</h2>
+<table>
+<thead><tr><th style="width:6%">ID</th><th style="width:34%">Cenário</th><th style="width:30%">O que já existe</th><th>O que fazer</th></tr></thead>
+<tr><td>T05</td><td>Um relato em texto livre pode trazer nome, endereço ou saúde. A Lambda atual não recebe relato nem grava texto livre. Os relatos existem só como exemplos fictícios no MongoDB.</td><td>A Lambda guarda só <code>device_id</code>, <code>seq</code>, hora, medições, risco e <code>reenviado</code>. O log mostra <code>device_id</code>, <code>seq</code> e risco, sem o corpo e sem a chave.</td><td>Se um relato real for ligado à nuvem, validar de novo: tamanho, retenção do log e aviso ao morador. Ver seção 10.</td></tr>
+<tr><td>T06</td><td>O túnel da demonstração liga a API local à internet.</td><td>Túnel encerrado depois do teste. A URL do sketch é um texto de exemplo. A API pede chave.</td><td>Abrir um túnel de novo só com as chaves configuradas, e fechar ao terminar.</td></tr>
+<tr><td>T07</td><td>O modelo de ML tem ganho modesto sobre o acaso (PR-AUC de teste 0,20 contra 0,083), e a faixa "baixo" ainda contém 24% das linhas com evento. Um morador pode ler "baixo" como "seguro".</td><td>A decisão imediata vem do nível medido pelo nó, que não usa o modelo. O modelo não está ligado à API nem à nuvem.</td><td>Nunca mostrar "sem risco". Mostrar "sem aviso do modelo", com uma frase sobre o limite.</td></tr>
+<tr><td>T08</td><td>Segredo no código ou no histórico. O relatório de AWS conta que a chave do dispositivo apareceu em testes e foi rotacionada.</td><td>Chaves só em variável de ambiente da Lambda (cifrada em repouso) e no terminal de teste. <code>.env</code> ignorado. A busca por padrões de chave não achou nada em 12/11.</td><td>Repetir a busca antes de entregar. Em produção, Secrets Manager. Nunca imprimir chave em log.</td></tr>
+<tr><td>T09</td><td>O sketch usa <code>setInsecure()</code> e não valida o certificado do servidor. Alguém no meio do caminho poderia alterar a leitura.</td><td>O endereço do API Gateway usa HTTPS. A falha é do firmware, aceita na demonstração (Wokwi).</td><td>Em produção, fixar o certificado da CA no firmware. Registrar como limitação.</td></tr>
+<tr><td>T10</td><td>A internet cai durante a enchente.</td><td>O alerta local não depende de rede. A fila em memória guarda as leituras e reenvia com espera crescente. A API e a Lambda detectam repetição pelo <code>seq</code>.</td><td>Documentar. A fila é de RAM e some se o nó reiniciar.</td></tr>
+<tr><td>T11</td><td>O cadastro tem nome, telefone, e-mail e a data do consentimento. É o dado mais sensível do sistema quando existir de verdade.</td><td>Existe só no modelo Oracle, com dados fictícios e sem ligação com a AWS. A telemetria não leva dado pessoal.</td><td>Só ligar ao alerta com consentimento, finalidade escrita e acesso restrito.</td></tr>
+<tr><td>T12</td><td>Entrada fora do formato ou hostil.</td><td>A Lambda valida tipo e faixa de todos os campos (422) e não usa SQL: só faz <code>PutItem</code>. Mensagens de erro genéricas.</td><td>Se um painel exibir dados do banco, escapar o texto na saída.</td></tr>
+<tr><td>T13</td><td>Um POST válido repetido cria duplicata.</td><td>A API Python e a Lambda recusam o mesmo <code>device_id</code> e <code>seq</code> (409). O teste na conta real mostra o 409.</td><td>Manter o teste.</td></tr>
+<tr><td>T14</td><td>O alerta aos moradores é um e-mail para quem assinou o tópico do SNS. Não há reenvio nem aviso de "resolvido", e o alarme é por dispositivo e por minuto. O cadastro do Oracle não está ligado.</td><td>O alarme <code>Alertas &gt;= 1</code> passou a "Em alarme" e o e-mail chegou no teste (capturas 07 e 10 de <code>aws/evidencias/</code>).</td><td>SMS e ligação com o cadastro, como evolução futura. Para a entrega, dizer com clareza que o aviso é por e-mail a assinantes.</td></tr>
+<tr><td>T15</td><td>As dependências da API usam <code>&gt;=</code> sem versão fixa. A Lambda não usa pacote externo.</td><td><code>pip-audit</code> sem vulnerabilidade conhecida em 12/11.</td><td>Fixar as versões depois da última instalação e repetir a auditoria antes da entrega.</td></tr>
+</table>
+
+<h2>10. Privacidade e LGPD</h2>
+<p>Esta seção é um rascunho para revisão de um advogado. Ela descreve o que o protótipo faz e o que se propõe fazer, e não afirma conformidade com a Lei Geral de Proteção de Dados (Lei 13.709/2018). O texto completo está em <code>ciberseguranca/lgpd-rascunho.md</code>.</p>
+<h3>10.1 Dados, finalidade e base legal proposta</h3>
+<table>
+<thead><tr><th style="width:22%">Dado</th><th style="width:14%">Quando existe</th><th style="width:24%">Finalidade</th><th style="width:22%">Base legal proposta</th><th>Onde fica</th></tr></thead>
+<tr><td>Leitura do nó (nível, chuva, temperatura, umidade, <code>device_id</code>, <code>seq</code>, hora) e o risco calculado</td><td>Hoje</td><td>Classificar o risco e manter o histórico</td><td>Não é dado pessoal</td><td>DynamoDB, CSV da API local</td></tr>
+<tr><td>E-mail do assinante do alerta</td><td>Hoje, na assinatura do tópico SNS</td><td>Enviar o aviso de risco</td><td>Consentimento (art. 7º, I), com a confirmação do link recebido. A proteção da vida (art. 7º, VII) pode se aplicar ao aviso em si</td><td>SNS (AWS, região us-east-1)</td></tr>
+<tr><td>Relato em texto livre</td><td>Só se relatos reais forem ligados. Hoje são exemplos fictícios</td><td>Dar contexto à leitura</td><td>Consentimento (art. 7º, I)</td><td>MongoDB de demonstração (fictício)</td></tr>
+<tr><td>Coordenadas</td><td>Não são enviadas pelo nó nem recebidas pela Lambda</td><td>Localizar o ponto de risco</td><td>Se forem usadas, consentimento. Se apontarem uma residência, é dado pessoal</td><td>Não existem hoje na nuvem</td></tr>
+<tr><td>Nome, telefone e e-mail do cadastro</td><td>Só quando o cadastro for ligado ao alerta. Hoje são fictícios</td><td>Avisar o morador cadastrado</td><td>Consentimento (art. 7º, I), com data e hora gravadas</td><td>Oracle, com dados fictícios</td></tr>
+</table>
+<p>A escolha final da base legal de cada linha é do advogado. A proteção da vida é uma hipótese a avaliar para o aviso de risco e não substitui o consentimento para o cadastro.</p>
+<h3>10.2 Campos do cadastro</h3>
+<p>Proposta mínima para quando o cadastro for ligado ao alerta. O modelo Oracle tem nome, telefone, e-mail, área e data do consentimento, e exige ao menos um entre telefone e e-mail. Obrigatórios: telefone ou e-mail, para receber o aviso, e a área de risco, para receber o aviso do nó certo sem tratar a localização da casa; mais o registro do consentimento, com data e hora. Não se pede CPF, endereço completo, data de nascimento nem dado de saúde, porque o aviso não usa nada disso.</p>
+<h3>10.3 Consentimento</h3>
+<p>Na assinatura do alerta por e-mail, antes de pedir o endereço:</p>
+<blockquote>Quero receber avisos de risco de alagamento neste e-mail, e concordo com o uso do meu e-mail só para isso. O serviço de envio fica na AWS, fora do Brasil. Posso cancelar a assinatura quando quiser.</blockquote>
+<p>No cadastro com telefone, uma caixa de seleção que vem desmarcada e fica separada de qualquer outro aceite:</p>
+<blockquote>Quero receber avisos de risco de alagamento por mensagem de texto no telefone informado, e concordo com o uso do meu telefone só para isso. Posso retirar o consentimento quando quiser.</blockquote>
+<h3>10.4 Compartilhamento, direitos e retenção</h3>
+<ul>
+  <li>Compartilhamento: a Amazon Web Services hospeda a API, a função, o DynamoDB, os logs e o SNS (operador), na região us-east-1, nos Estados Unidos. A telemetria não é dado pessoal, mas o e-mail do assinante é, e guardá-lo no SNS pode contar como transferência internacional de dados (arts. 33 e seguintes). Nenhum serviço de IA de terceiros lê dado do projeto. Não há integração com a Defesa Civil.</li>
+  <li>Direitos do titular (art. 18): confirmação, acesso, correção, eliminação dos dados tratados com consentimento, informação sobre o compartilhamento e retirada do consentimento. A confirmação deve ser imediata, ou a declaração completa sair em até 15 dias (art. 19), a conferir com o advogado. Hoje não existe rotina para atender esses pedidos. Para o e-mail, o cancelamento é remover a assinatura do tópico SNS.</li>
+  <li>Retenção proposta, a validar: telemetria por 12 meses, logs do CloudWatch por 30 dias, texto livre de relatos por 90 dias e o contato do morador enquanto o cadastro estiver ativo. Hoje nenhum prazo está configurado: o log do CloudWatch, por padrão, não expira, e o relatório de AWS não registra expiração na tabela do DynamoDB.</li>
+  <li>Crianças e adolescentes: o serviço não é direcionado a menores. Se um cadastro de menor for aceito, o consentimento precisa vir de um responsável (art. 14).</li>
+</ul>
+<p>Prazos de retenção adotados: a telemetria dos sensores fica 12 meses, porque serve para comparar a cheia atual com as anteriores e não identifica ninguém. Os logs do CloudWatch ficam 30 dias, tempo suficiente para investigar uma falha ou um acesso estranho. O texto livre dos relatos fica 90 dias, pois pode conter nome, endereço ou telefone digitados pelo morador sem que o formulário peça. O contato do morador (telefone ou e-mail) fica enquanto o cadastro estiver ativo e é apagado quando ele cancelar a assinatura ou retirar o consentimento. Esses prazos ainda precisam ser configurados na AWS (expiração dos logs e TTL na tabela do DynamoDB) e conferidos pelo advogado.</p>
+<p>O morador exerce os direitos do art. 18 escrevendo para rafa120207@gmail.com, e o pedido é respondido em até 15 dias.</p>
+<h3>10.5 Segurança dos dados</h3>
+<p>Feito e conferido no repositório e no relatório de AWS: chave por dispositivo na API e na Lambda, chave de leitura separada e limites de requisições e de tamanho na API; HTTPS no API Gateway, DynamoDB e variáveis de ambiente da Lambda cifrados em repouso; chaves só em variável de ambiente, com a chave do dispositivo na nuvem rotacionada depois de aparecer em testes; a Lambda sem rota de leitura, sem texto livre e sem coordenada, com log que mostra só <code>device_id</code>, <code>seq</code> e risco. Ainda deixa o dado exposto: a função usa a LabRole, que é ampla; o e-mail do assinante fica num serviço da AWS fora do Brasil; e o aviso chega só a quem assinou o tópico.</p>
+
+<h2>11. Limitações e evolução futura</h2>
+<ul>
+  <li>A função usa a LabRole porque o Learner Lab não permite criar perfis. A evolução é um perfil próprio, só com <code>dynamodb:PutItem</code> na tabela, e as chaves dos dispositivos no Secrets Manager.</li>
+  <li>A chave do nó fica no firmware. A evolução é chave por aparelho com rotação e proteção da memória flash.</li>
+  <li>O limite de requisições da API fica na memória de um processo. A evolução é um limite compartilhado entre instâncias, ou o limite do gateway na frente da API.</li>
+  <li>O nó não valida o certificado do servidor (<code>setInsecure()</code>). A evolução é fixar a CA no firmware.</li>
+  <li>Atrás de um túnel ou proxy, as requisições sem chave chegam todas do mesmo endereço e dividem um único limite de tentativas. O cabeçalho <code>X-Forwarded-For</code> não é usado.</li>
+  <li>A API não faz TLS. O HTTPS vem do túnel ou de um proxy na frente dela.</li>
+  <li>O cadastro de moradores, o envio de avisos e a rotina de atendimento aos direitos do titular não existem. O texto de LGPD descreve o que deve existir quando o cadastro for construído.</li>
+</ul>
+
+<h2>12. O que foi executado e o que só foi lido</h2>
+<p>Executado antes do controle, em 12/11/2026, na API local: leitura forjada sem chave aceita (201); consulta sem chave aceita (200); mesmo <code>seq</code> recusado (409); nível negativo recusado (422); corpo de 2 MB aceito; 60 POSTs seguidos aceitos. Também foram executados a auditoria de dependências e a busca por segredos.</p>
+<p>Executado depois do controle: os 45 testes da API, as duas mutações, a prova com a API no ar (seção 8.4), os três cenários do <code>cenarios.py</code> com as chaves, a conferência de que as chaves não aparecem no log e a recusa de subir sem as chaves.</p>
+<p>Executado na nuvem e registrado no relatório de AWS de 15/11, com as capturas em <code>aws/evidencias/</code>: o teste ponta a ponta na conta real (201 nos três cenários, 409 na repetida, 401 sem chave válida), os itens gravados no DynamoDB, o alarme em "Em alarme" e o e-mail recebido do SNS. O relatório cita 34 testes automatizados da Lambda, que não foram reexecutados nesta atualização.</p>
+<p>Apenas lido, sem teste real: que concorrência reservada e alerta de orçamento não foram configurados (não aparecem no relatório de AWS); o <code>setInsecure()</code> do sketch; e o cabeçalho <code>X-API-Key</code> que o sketch passou a enviar, que não foi compilado nem rodado no Wokwi.</p>
+<p>Este relatório não declara o sistema seguro nem em conformidade com a LGPD. Ele registra o que foi coberto, o que ficou como risco aceito e o que falta.</p>
+
+<h2>Referências no repositório</h2>
+<ul>
+  <li><code>ciberseguranca/inventario-ameacas.md</code>: inventário completo, com a análise de cada ameaça.</li>
+  <li><code>ciberseguranca/lgpd-rascunho.md</code>: rascunho de privacidade e LGPD.</li>
+  <li><code>ciberseguranca/roteiro-prova-protecao.md</code>: passo a passo da prova e dos prints.</li>
+  <li><code>python-api/seguranca.py</code>, <code>python-api/main.py</code> e <code>python-api/tests/test_seguranca.py</code>: a proteção e seus testes.</li>
+  <li><code>python-api/prova_protecao.py</code>: o script da prova.</li>
+</ul>
+
+</body>
+</html>

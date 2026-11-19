@@ -1,0 +1,22 @@
+API em http://127.0.0.1:8000, limite de 60 requisições por minuto
+
+[OK] GET /health, aberto, sem chave                             HTTP 200 (esperado 200)
+[OK] POST sem chave                                             HTTP 401 (esperado 401)
+[OK] POST com chave errada                                      HTTP 401 (esperado 401)
+[OK] POST com a chave do dispositivo                            HTTP 201 (esperado 201)
+[OK] POST com a chave, mas em nome de outro dispositivo         HTTP 403 (esperado 403)
+[OK] POST com corpo acima de 8 KB                               HTTP 413 (esperado 413)
+[OK] GET /leituras sem chave de leitura                         HTTP 401 (esperado 401)
+[OK] GET /leituras com a chave de leitura                       HTTP 200 (esperado 200)
+
+Rajada: 65 POSTs seguidos com a chave certa
+  chamada   1: HTTP 201
+  chamada   2: HTTP 201
+  chamada   3: HTTP 201
+  chamada  58: HTTP 201
+  chamada  59: HTTP 429
+  chamada  60: HTTP 429
+  chamada  65: HTTP 429
+[OK] primeiro 429 na chamada 59 desta rajada, Retry-After de 59 s
+
+Tudo como esperado.

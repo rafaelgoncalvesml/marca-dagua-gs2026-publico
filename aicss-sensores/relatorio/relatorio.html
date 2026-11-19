@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Marca d'Água: nó de alerta de alagamento (AICSS)</title>
+<style>
+  @page { size: A4; margin: 22mm 20mm 22mm 20mm; }
+  :root { --tinta: #111827; --apoio: #4b5563; --azul: #0b3d91; --linha: #c9ced6; --fundo-cod: #f3f4f6; --aviso: #fff4cc; }
+  * { box-sizing: border-box; }
+  body { font-family: Georgia, "Times New Roman", serif; font-size: 11pt; line-height: 1.5; color: var(--tinta); margin: 0; }
+  h1, h2, h3, .capa, table, figcaption, .pendente, .nota { font-family: "Segoe UI", Arial, sans-serif; }
+  h2 { font-size: 16pt; color: var(--azul); margin: 26pt 0 8pt; padding-bottom: 4pt; border-bottom: 2px solid var(--azul); break-after: avoid; }
+  h3 { font-size: 12pt; margin: 16pt 0 4pt; break-after: avoid; }
+  p { margin: 0 0 8pt; text-align: left; }
+  ul, ol { margin: 0 0 8pt; padding-left: 18pt; }
+  li { margin-bottom: 3pt; }
+  a { color: var(--azul); }
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 6pt 0 12pt; break-inside: avoid; }
+  th, td { border: 1px solid var(--linha); padding: 4pt 6pt; text-align: left; vertical-align: top; }
+  th { background: #e8edf7; }
+  code, pre { font-family: Consolas, "Courier New", monospace; }
+  code { font-size: 9.5pt; }
+  pre { background: var(--fundo-cod); border: 1px solid var(--linha); padding: 7pt 9pt; font-size: 8pt; line-height: 1.35; white-space: pre-wrap; word-break: break-all; margin: 4pt 0 10pt; }
+  pre.fonte { font-size: 7pt; white-space: pre; word-break: normal; overflow: hidden; }
+  figure { margin: 8pt 0 12pt; break-inside: avoid; }
+  figure img { max-width: 100%; max-height: 105mm; display: block; border: 1px solid var(--linha); }
+  figure.lado { display: inline-block; width: 49%; vertical-align: top; margin-right: 0.5%; }
+  figure.lado img { max-height: 80mm; }
+  figcaption { font-size: 8.5pt; color: var(--apoio); margin-top: 3pt; }
+  .pendente { border: 2px dashed #b45309; background: var(--aviso); padding: 14pt 10pt; font-size: 9.5pt; margin: 8pt 0 12pt; break-inside: avoid; }
+  .nota { font-size: 9pt; color: var(--apoio); }
+  .capa { min-height: 245mm; display: flex; flex-direction: column; justify-content: space-between; break-after: page; }
+  .capa .faixa { border-left: 10px solid var(--azul); padding-left: 16pt; margin-top: 50mm; }
+  .capa .disc { font-size: 11pt; text-transform: uppercase; letter-spacing: 1px; color: var(--apoio); margin: 0 0 12pt; }
+  .capa h1 { font-size: 34pt; line-height: 1.1; margin: 0 0 10pt; }
+  .capa .sub { font-size: 14pt; color: var(--apoio); margin: 0; }
+  .capa .autores { font-size: 12pt; }
+  .capa .autores p { margin: 0 0 3pt; }
+  .capa .rodape { font-size: 9.5pt; color: var(--apoio); }
+  .quebra { break-before: page; }
+</style>
+</head>
+<body>
+
+<section class="capa">
+  <div class="faixa">
+    <p class="disc">AI Computer Systems and Sensors (AICSS), Global Solution 2026.2</p>
+    <h1>Marca d'Água</h1>
+    <p class="sub">Nó comunitário com ESP32 que mede nível e chuva, avisa no local e envia as leituras a uma API em Python</p>
+  </div>
+  <div class="autores">
+    <p>Rafael Gonçalves, RM 569461</p>
+    <p>Charles Augusto, RM 571908</p>
+  </div>
+  <div class="rodape">
+    <p>Tecnólogo em Inteligência Artificial, turma 1TIAP, FIAP. Novembro de 2026.</p>
+    <p>Repositório: <a href="https://github.com/rafaelgoncalvesml/marca-dagua-gs2026-publico">github.com/rafaelgoncalvesml/marca-dagua-gs2026-publico</a></p>
+    <p>O nó é simulado no Wokwi. A seção 7 diz o que foi implementado e o que foi simulado.</p>
+  </div>
+</section>
+
+<h2 style="margin-top:0">1. Problema, público e relevância</h2>
+
+<p>Quem mora em área de risco de Porto Alegre costuma saber do alagamento tarde, ou por um canal que não usa. Em 2024 isso ficou evidente: segundo <a href="https://www.ihu.unisinos.br/639820-maioria-das-estacoes-do-governo-do-rs-que-enviam-dados-de-chuva-em-tempo-real-nao-funciona">reportagem do Instituto Humanitas Unisinos</a>, boa parte das estações de chuva do governo estadual que deveriam transmitir em tempo real estava fora do ar.</p>
+
+<p>Os beneficiados são os moradores de áreas de risco, como as ilhas, o Sarandi e o Humaitá, e a Defesa Civil municipal, que atende pelo 199. O desenho parte das condições de quem vive ali: internet instável durante a enchente, famílias sem smartphone, pessoas com deficiência auditiva ou visual e sensores baratos, mantidos pela comunidade, no lugar de estações caras.</p>
+
+<p>O enunciado pergunta como um dispositivo com sensores pode perceber um problema antes que ele afete alguém. Nossa resposta é um nó que mede o nível da água e a chuva no ponto onde o morador está, dá o aviso ali mesmo e envia os dados à solução integrada do grupo. Nas outras disciplinas, esses dados servem para estimar o risco das próximas horas e avisar os moradores cadastrados.</p>
+
+<h2>2. Arquitetura e origem dos dados</h2>
+
+<p>O fluxo é o que o enunciado pede: fenômeno observado, ESP32 com sensores, alerta local, JSON e servidor Python.</p>
+
+<table>
+  <tr><th>Etapa</th><th>O que acontece</th><th>Onde está</th></tr>
+  <tr><td>1. Fenômeno</td><td>Nível da água na calha, chuva e clima do local</td><td>Simulado no Wokwi</td></tr>
+  <tr><td>2. ESP32 com sensores</td><td>Leitura a cada 2 s, classificação de cada sensor em OK, ATENCAO ou ALERTA</td><td><code>aicss-sensores/sketch/sketch.ino</code></td></tr>
+  <tr><td>3. Alerta local</td><td>LED e buzzer, sem depender de rede</td><td>No próprio nó</td></tr>
+  <tr><td>4. JSON</td><td>Um objeto por leitura, igual ao contrato das outras disciplinas</td><td>Serial e corpo do POST</td></tr>
+  <tr><td>5. Servidor Python</td><td>API FastAPI valida, classifica de novo, grava em CSV e responde consultas</td><td><code>python-api/</code></td></tr>
+</table>
+
+<p>Os dados são gerados pelo próprio nó. No Wokwi, o HC-SR04 faz o papel de sensor de nível, um botão representa o pluviômetro basculante e o DHT22 mede temperatura e umidade. Sem dispositivo físico, cada valor vem do que se ajusta no simulador. Para chegar à API, o nó passa por um túnel do cloudflared, porque o Wokwi só alcança a internet pública e não o <code>localhost</code> do computador.</p>
+
+<h2>3. Sensores e justificativa</h2>
+
+<table>
+  <tr><th>Sensor</th><th>Mede</th><th>Por que entra</th><th>Como foi simulado</th></tr>
+  <tr><td>HC-SR04 (ultrassom)</td><td>Distância até a água, que vira nível</td><td>O nível é o dado direto de que a água está subindo. O sensor fica preso a 4 m do fundo da calha e o nível é 400 cm menos a distância medida.</td><td>Controle de distância do Wokwi</td></tr>
+  <tr><td>Pluviômetro basculante</td><td>Chuva em mm/h</td><td>Chuva forte antecede a cheia. Cada basculada vale 0,2 mm; o nó conta os pulsos numa janela de 60 s e converte para mm/h.</td><td>Botão com contagem por interrupção e filtro de 50 ms contra repique</td></tr>
+  <tr><td>DHT22</td><td>Temperatura e umidade</td><td>Dá contexto do clima e entra no registro para os modelos das outras disciplinas. A umidade só informa e não dispara alarme.</td><td>Controles do Wokwi</td></tr>
+</table>
+
+<p>Há dois atuadores, um LED vermelho e um buzzer. Cada nível de risco tem um padrão próprio, de modo que o aviso funciona para quem não ouve e para quem não enxerga.</p>
+
+<table>
+  <tr><th>Risco</th><th>LED</th><th>Buzzer</th></tr>
+  <tr><td>OK</td><td>Apagado</td><td>Mudo</td></tr>
+  <tr><td>ATENCAO</td><td>Piscando</td><td>1 bipe curto por ciclo</td></tr>
+  <tr><td>ALERTA</td><td>Aceso fixo</td><td>3 bipes por ciclo</td></tr>
+</table>
+
+<h3>Limiares</h3>
+
+<table>
+  <tr><th>Medida</th><th>ATENCAO a partir de</th><th>ALERTA a partir de</th></tr>
+  <tr><td>Nível da água</td><td>100 cm</td><td>180 cm</td></tr>
+  <tr><td>Chuva</td><td>20 mm/h</td><td>50 mm/h</td></tr>
+  <tr><td>Umidade</td><td>90%</td><td>não tem</td></tr>
+</table>
+
+<p>O risco do nó é o pior entre nível e chuva. Sketch e API usam os mesmos valores, que são provisórios: falta conferir a cota oficial de inundação do Gasômetro na fonte antes de fixá-los.</p>
+
+<h2 class="quebra">4. Comportamentos demonstrados</h2>
+
+<p>A demonstração tem três comportamentos. Em cada um aparecem a reação do LED e do buzzer, o JSON da serial e o registro no servidor. Uma variante de atenção mostra o estado intermediário.</p>
+
+<h3>4.1 Tudo normal</h3>
+<p>Nível em torno de 47 cm, sem chuva, 24 °C e 70% de umidade. Risco OK, LED apagado, buzzer mudo.</p>
+<!--IMG 01-tudo-normal-serial.png|Serial do Wokwi com o JSON da leitura normal (risco OK).-->
+
+<h3>4.2 Chuva forte</h3>
+<p>Com o nível parado, o botão do pluviômetro foi apertado em sequência. A chuva passou pelas faixas de atenção e chegou ao alerta. LED aceso fixo e três bipes por ciclo.</p>
+<!--IMG 02-chuva-forte-led-serial.png|LED aceso e linha [ALERTA] na serial, com a chuva acima do limiar.-->
+<!--IMG 02-chuva-forte-buzzer.png|O mesmo cenário com o buzzer tocando.-->
+<!--JSON 02-chuva-forte.json-->
+
+<h3>4.3 Nível crítico</h3>
+<p>O controle de distância do HC-SR04 foi ajustado para 190 cm, o que dá um nível de cerca de 208 cm. Alerta por nível, LED aceso fixo, chuva em zero.</p>
+<!--IMG 03-nivel-critico-led-serial.png|Nível em 208,5 cm, status do nível em ALERTA e LED aceso.-->
+<!--JSON 03-nivel-critico.json-->
+
+<h3>4.4 Variante de atenção</h3>
+<p>Com o sensor em 292 cm, o nível ficou em torno de 105 cm: risco ATENCAO, LED piscando e um bipe por ciclo.</p>
+<!--IMG 01b-atencao-nivel-led-serial.png|Nível em 105,6 cm e risco ATENCAO.-->
+
+<h2 class="quebra">5. Transmissão em JSON e registro no servidor</h2>
+
+<p>Cada leitura vira um único JSON, no mesmo formato das demais disciplinas do projeto.</p>
+
+<pre>{
+  "device_id": "MD-POA-001",
+  "seq": 1234,
+  "ts": "2026-11-10T14:32:05-03:00",
+  "nivel_cm": 182.4,
+  "chuva_mm_h": 12.5,
+  "temperatura_c": 24.1,
+  "umidade_pct": 88.0,
+  "status": { "nivel": "ALERTA", "chuva": "OK", "umidade": "OK" },
+  "risco": "ALERTA",
+  "reenviado": false
+}</pre>
+
+<p>O nó manda o JSON por <code>POST /leituras</code>. A API confere cada campo (tipo, faixa e fuso horário do <code>ts</code>), refaz a classificação com os valores medidos, descarta o <code>status</code> e o <code>risco</code> enviados pelo dispositivo e grava uma linha no CSV. Se a leitura já existe (mesmo <code>device_id</code> e <code>seq</code>), responde 409 e não grava; se o JSON é inválido, responde 422. Como o <code>seq</code> aumenta a cada leitura, o <code>GET /indicadores</code> consegue contar quantas faltaram.</p>
+
+<h3>Evidências do envio</h3>
+<!--IMG 10-01-api-e-tunel.png|Saída dos terminais com a API no ar e o túnel do cloudflared com o endereço público (texto copiado dos logs e do teste de /health).-->
+<!--IMG 10-02-post-ok-serial.png|Serial do Wokwi com os envios confirmados (HTTP 201).-->
+<!--IMG 10-03-leituras-na-api.png|Leituras recebidas e gravadas pela API (GET /leituras).-->
+
+<h2 class="quebra">6. Inovação: fila offline e alerta que não depende de rede</h2>
+
+<p>A internet costuma cair em plena enchente, quando o dado mais importa. Por isso o aviso no local não passa pela rede: o LED e o buzzer reagem direto à leitura dos sensores, haja conexão ou não.</p>
+
+<p>O envio também considera a rede que falha. Se o POST não é confirmado, o nó guarda a leitura numa fila em memória e segue medindo e avisando. Quando a API volta, a fila é descarregada na ordem em que as leituras foram feitas.</p>
+
+<ul>
+  <li>Cabem 60 leituras na fila, uns dois minutos de medição. Quando enche, a mais antiga sai para dar lugar à nova.</li>
+  <li>A cada ciclo o nó reenvia até 5 leituras da fila antes de continuar, e as que saem dela vão com <code>"reenviado": true</code>.</li>
+  <li>Após uma falha o nó aguarda 10 s para tentar outra vez, e assim o LED e o buzzer não ficam presos esperando a rede.</li>
+  <li>A leitura sai da fila quando a API responde 201 (gravou), 409 (já tinha) ou 422 (inválida, repetir não muda nada). Qualquer outra resposta, como um timeout ou o 502 do túnel, mantém a leitura na fila.</li>
+  <li>Cada leitura leva um número de sequência. Se algo se perder, a API enxerga o buraco em <code>lacunas_seq</code>, no <code>GET /indicadores</code>.</li>
+</ul>
+
+<p>No Wokwi não há como derrubar a rede do nó, então a queda foi simulada parando a API com o túnel aberto. O túnel passa a devolver 502, e o nó trata isso como falha de envio.</p>
+
+<h3>Evidências do teste offline</h3>
+<!--IMG 10-04-api-parada-fila.png|API parada: o envio falha e as leituras entram na fila.-->
+<!--IMG 10-05-reenvio-em-ordem.png|API de volta: as leituras saem da fila em ordem, com reenviado igual a true.-->
+<!--IMG 10-06-indicadores.png|Indicadores da API depois do reenvio, sem lacunas na sequência.-->
+
+<table>
+  <tr><th>Resultado do teste offline (10/11/2026)</th><th>Valor</th></tr>
+  <tr><td>Tempo com a API parada</td><td>cerca de 46 s (de 19:21:39 a 19:22:25, relógio do computador)</td></tr>
+  <tr><td>Leituras que foram para a fila</td><td>19 (seq 10 a 28), com a fila chegando a 18 depois do primeiro reenvio</td></tr>
+  <tr><td>Leituras reenviadas em ordem</td><td>22 com <code>reenviado: true</code> no fim do teste, na sequência de <code>seq</code>, todas com HTTP 201</td></tr>
+  <tr><td><code>lacunas_seq</code> no fim</td><td><code>{}</code>: a API recebeu os <code>seq</code> de 3 a 31 sem buraco (o CSV foi limpo antes do teste, por isso começa no 3)</td></tr>
+</table>
+
+<p>O esvaziamento foi lento no simulador: cerca de 5 leituras a cada 35 s de relógio, porque cada reenvio abre uma conexão HTTPS pelo túnel. O resultado foi o esperado, mas o tempo de recuperação depende dessa velocidade.</p>
+
+<h2 class="quebra">7. Testes, limitações e o que foi simulado</h2>
+
+<h3>Testes com entradas diferentes</h3>
+
+<table>
+  <tr><th>Entrada</th><th>Resultado esperado</th><th>Resultado observado</th></tr>
+  <tr><td>Nível 47 cm, chuva 0 mm/h</td><td>OK, LED apagado</td><td>Confere (seção 4.1)</td></tr>
+  <tr><td>Nível 105 cm</td><td>ATENCAO, LED piscando, 1 bipe</td><td>Confere (seção 4.4)</td></tr>
+  <tr><td>Botão apertado em sequência até a chuva passar de 50 mm/h</td><td>ALERTA por chuva, LED fixo, 3 bipes</td><td>Confere (seção 4.2)</td></tr>
+  <tr><td>Sensor ajustado para 190 cm (nível perto de 208 cm)</td><td>ALERTA por nível</td><td>Confere (seção 4.3)</td></tr>
+  <tr><td>JSON com campo fora da faixa ou sem fuso</td><td>API devolve 422 e não grava</td><td>Coberto pelos testes automáticos da API</td></tr>
+  <tr><td>Mesma leitura enviada duas vezes</td><td>API devolve 409 e não duplica</td><td>Coberto pelos testes automáticos da API</td></tr>
+  <tr><td>API parada e depois religada</td><td>Leituras na fila e reenvio em ordem</td><td>Confere (seção 6): 19 leituras na fila, reenvio em ordem, sem lacunas</td></tr>
+</table>
+
+<p>Os testes automáticos da API, 21 no total, rodam com <code>pytest</code> e cobrem as faixas de classificação, o indicador, a validação e a leitura repetida. Todos passaram em 10 de novembro de 2026.</p>
+
+<h3>O que foi implementado e o que foi simulado</h3>
+
+<table>
+  <tr><th>Implementado de verdade</th><th>Simulado</th></tr>
+  <tr><td>O código do ESP32: leitura, interrupção do pluviômetro, classificação, LED, buzzer, JSON, POST e fila offline</td><td>O ESP32 e os sensores (Wokwi, sem dispositivo físico)</td></tr>
+  <tr><td>A API FastAPI com validação, classificação, CSV e indicadores</td><td>A chuva, que vem de um botão que representa o pluviômetro</td></tr>
+  <tr><td>O contrato JSON e a numeração de sequência</td><td>A queda de rede, feita parando a API</td></tr>
+  <tr><td>O túnel até a API (cloudflared)</td><td>O nível da água, que vem do controle de distância</td></tr>
+</table>
+
+<h3>Limitações identificadas</h3>
+<ul>
+  <li>Os limiares são provisórios, até conferir a cota oficial de inundação do Gasômetro.</li>
+  <li>Nenhum sensor foi calibrado em campo. O pluviômetro simulado por botão não reproduz a variação real da chuva.</li>
+  <li>O nó usa HTTPS sem validar o certificado do servidor. Serve para a demonstração e não para produção.</li>
+  <li>Enquanto o túnel está aberto, a API fica acessível a quem tiver o endereço e ainda não tem autenticação. A proteção entra pela disciplina de Cybersecurity.</li>
+  <li>A fila fica na memória RAM. Se o nó reiniciar com leituras na fila, elas se perdem. Memória não volátil seria a evolução.</li>
+  <li>Se o nó ligar sem Wi-Fi, não consegue o horário e a leitura sai sem <code>ts</code>. A API recusa essa leitura com 422.</li>
+  <li>Na primeira partida depois de recompilar o sketch, o Wokwi reiniciou uma vez por um erro de asserção durante o primeiro envio, que ainda saiu sem <code>ts</code>. Na segunda partida o horário veio certo e tudo funcionou. A causa não foi investigada.</li>
+  <li>O aviso para pessoas com deficiência auditiva e visual foi pensado no padrão de LED e buzzer, mas não foi testado com pessoas.</li>
+  <li>O CSV é relido a cada POST para detectar leituras repetidas. Para milhares de leituras seria melhor um banco.</li>
+</ul>
+
+<h2>8. Relação com os ODS</h2>
+
+<table>
+  <tr><th>ODS</th><th>Relação com o projeto</th></tr>
+  <tr><td>11. Cidades e comunidades sustentáveis</td><td>O nó monitora o risco de alagamento em bairros expostos de Porto Alegre e dá aviso no local.</td></tr>
+  <tr><td>13. Ação contra a mudança global do clima</td><td>O projeto trata do efeito local da chuva extrema, e o histórico gravado pela API alimenta a estimativa de risco das próximas horas.</td></tr>
+  <tr><td>3. Saúde e bem-estar</td><td>Aviso antecipado reduz o risco à vida e as doenças que vêm depois da enchente.</td></tr>
+  <tr><td>10. Redução das desigualdades</td><td>O sensor de baixo custo e o aviso por LED e buzzer levam monitoramento a bairros com pouca infraestrutura e a pessoas que não usam smartphone.</td></tr>
+</table>
+
+<h2>9. Código desenvolvido</h2>
+
+<p>O código completo está no repositório <a href="https://github.com/rafaelgoncalvesml/marca-dagua-gs2026-publico">github.com/rafaelgoncalvesml/marca-dagua-gs2026-publico</a>. Abaixo ficam o sketch do ESP32 e o núcleo da API.</p>
+
+<table>
+  <tr><th>Arquivo</th><th>Papel</th></tr>
+  <tr><td><code>aicss-sensores/sketch/sketch.ino</code></td><td>Firmware do nó</td></tr>
+  <tr><td><code>aicss-sensores/diagram.json</code></td><td>Circuito do Wokwi</td></tr>
+  <tr><td><code>aicss-sensores/guia-tunel.md</code></td><td>Como ligar o Wokwi à API e rodar o teste offline</td></tr>
+  <tr><td><code>python-api/main.py</code></td><td>Endpoints e validação do JSON</td></tr>
+  <tr><td><code>python-api/classificacao.py</code></td><td>Limiares e classificação</td></tr>
+</table>
+
+<h3>sketch.ino</h3>
+<!--CODE aicss-sensores/sketch/sketch.ino-->
+
+<h3>main.py</h3>
+<!--CODE python-api/main.py-->
+
+<h3>classificacao.py</h3>
+<!--CODE python-api/classificacao.py-->
+
+</body>
+</html>

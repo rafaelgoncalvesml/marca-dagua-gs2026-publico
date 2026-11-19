@@ -1,0 +1,13 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<OSDM_Design class="oracle.dbtools.crest.model.design.Design" name="marca_dagua" id="AF764BED-EC72-5EC2-D1D3-334BB4827C98" version="3.5">
+<createdBy>Charles Augusto</createdBy>
+<createdTime>2026-11-12 12:01:50 UTC</createdTime>
+<ownerDesignName>marca_dagua</ownerDesignName>
+<capitalNames>false</capitalNames>
+<designId>AF764BED-EC72-5EC2-D1D3-334BB4827C98</designId>
+<usedDesignStorageDescriptors>
+<designDescr class="oracle.dbtools.crest.model.design.Design$DesignStorageDesc" id="8DAE5E32-A0CC-3217-07B3-ADD3D865C26C">
+<designStoragePath>C:\</designStoragePath>
+</designDescr>
+</usedDesignStorageDescriptors>
+</OSDM_Design>

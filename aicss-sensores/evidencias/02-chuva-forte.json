@@ -1,0 +1,1 @@
+{"device_id":"MD-POA-001","seq":6,"ts":"2026-11-09T19:17:48-03:00","nivel_cm":49,"chuva_mm_h":120,"temperatura_c":24,"umidade_pct":70,"status":{"nivel":"OK","chuva":"ALERTA","umidade":"OK"},"risco":"ALERTA","reenviado":false}

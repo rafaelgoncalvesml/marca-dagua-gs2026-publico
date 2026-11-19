@@ -1,0 +1,103 @@
+// =====================================================================
+// Marca d'Água - Cognitive Data Science (MongoDB)
+// Como rodar: abra o mongosh (ou o MongoDB Compass > _MONGOSH), cole o
+// arquivo inteiro e tire um print da saída de cada consulta.
+// Banco: marca_dagua | Coleções: eventos_brutos (10 documentos) e relatos (3)
+// Id comum com o Oracle: device_id = dispositivo.codigo ('MD-POA-001').
+// Os dados são de demonstração; as 3 primeiras leituras são as mesmas do
+// oracle.sql (seq 1794282380, 381 e 382).
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// 1. Criar o banco e as coleções (o banco só passa a existir com dados)
+// ---------------------------------------------------------------------
+use marca_dagua
+
+db.eventos_brutos.drop()
+db.relatos.drop()
+db.createCollection("eventos_brutos")
+db.createCollection("relatos")
+
+// Garante a mesma regra do Oracle: (device_id, seq) não se repete
+db.eventos_brutos.createIndex({ device_id: 1, seq: 1 }, { unique: true })
+db.eventos_brutos.createIndex({ risco: 1, ts: -1 })
+db.relatos.createIndex({ device_id: 1, registrado_em: -1 })
+
+// ---------------------------------------------------------------------
+// 2. Inserir 10 documentos em eventos_brutos (JSON completo do nó,
+//    com o status de cada sensor) e 3 relatos de moradores
+// ---------------------------------------------------------------------
+db.eventos_brutos.insertMany([
+  { device_id: "MD-POA-001", seq: 1794282380, ts: ISODate("2026-11-10T03:46:19Z"),
+    nivel_cm: 45.0,  chuva_mm_h: 0.4,  temperatura_c: 24.1, umidade_pct: 62.0,
+    status: { nivel: "OK", chuva: "OK", umidade: "OK" },            risco: "OK",      reenviado: false },
+  { device_id: "MD-POA-001", seq: 1794282381, ts: ISODate("2026-11-10T03:46:19Z"),
+    nivel_cm: 135.0, chuva_mm_h: 18.0, temperatura_c: 22.5, umidade_pct: 91.0,
+    status: { nivel: "ATENCAO", chuva: "ATENCAO", umidade: "ATENCAO" }, risco: "ATENCAO", reenviado: false },
+  { device_id: "MD-POA-001", seq: 1794282382, ts: ISODate("2026-11-10T03:46:19Z"),
+    nivel_cm: 195.5, chuva_mm_h: 42.0, temperatura_c: 21.0, umidade_pct: 97.0,
+    status: { nivel: "ALERTA", chuva: "ALERTA", umidade: "ALERTA" },   risco: "ALERTA",  reenviado: false },
+  { device_id: "MD-POA-001", seq: 1794282383, ts: ISODate("2026-11-10T04:01:19Z"),
+    nivel_cm: 188.0, chuva_mm_h: 35.5, temperatura_c: 20.8, umidade_pct: 96.0,
+    status: { nivel: "ALERTA", chuva: "ALERTA", umidade: "ALERTA" },   risco: "ALERTA",  reenviado: false },
+  { device_id: "MD-POA-001", seq: 1794282384, ts: ISODate("2026-11-10T04:16:19Z"),
+    nivel_cm: 150.0, chuva_mm_h: 22.0, temperatura_c: 20.9, umidade_pct: 93.0,
+    status: { nivel: "ATENCAO", chuva: "ATENCAO", umidade: "ATENCAO" }, risco: "ATENCAO", reenviado: false },
+  { device_id: "MD-POA-001", seq: 1794282385, ts: ISODate("2026-11-10T04:31:19Z"),
+    nivel_cm: 110.0, chuva_mm_h: 9.0,  temperatura_c: 21.4, umidade_pct: 88.0,
+    status: { nivel: "OK", chuva: "OK", umidade: "OK" },              risco: "OK",      reenviado: true  },
+  { device_id: "MD-POA-002", seq: 1794282390, ts: ISODate("2026-11-10T03:50:00Z"),
+    nivel_cm: 60.0,  chuva_mm_h: 3.0,  temperatura_c: 23.0, umidade_pct: 70.0,
+    status: { nivel: "OK", chuva: "OK", umidade: "OK" },              risco: "OK",      reenviado: false },
+  { device_id: "MD-POA-002", seq: 1794282391, ts: ISODate("2026-11-10T04:05:00Z"),
+    nivel_cm: 125.0, chuva_mm_h: 16.0, temperatura_c: 22.1, umidade_pct: 89.0,
+    status: { nivel: "ATENCAO", chuva: "ATENCAO", umidade: "OK" },    risco: "ATENCAO", reenviado: false },
+  { device_id: "MD-POA-002", seq: 1794282392, ts: ISODate("2026-11-10T04:20:00Z"),
+    nivel_cm: 182.0, chuva_mm_h: 31.0, temperatura_c: 21.6, umidade_pct: 95.0,
+    status: { nivel: "ALERTA", chuva: "ALERTA", umidade: "ALERTA" },   risco: "ALERTA",  reenviado: false },
+  { device_id: "MD-POA-002", seq: 1794282393, ts: ISODate("2026-11-10T04:35:00Z"),
+    nivel_cm: 95.0,  chuva_mm_h: 7.5,  temperatura_c: 22.0, umidade_pct: 84.0,
+    status: { nivel: "OK", chuva: "OK", umidade: "OK" },              risco: "OK",      reenviado: false }
+])
+
+// Relatos: texto livre, campos opcionais (sem esquema fixo)
+db.relatos.insertMany([
+  { device_id: "MD-POA-001", registrado_em: ISODate("2026-11-10T03:55:00Z"),
+    tipo: "agua_na_rua", local: "Rua principal da Ilha", observacao: "Água na altura do meio-fio." },
+  { device_id: "MD-POA-001", registrado_em: ISODate("2026-11-10T04:10:00Z"),
+    tipo: "sirene", observacao: "Alerta sonoro ouvido no local." },
+  { device_id: "MD-POA-002", registrado_em: ISODate("2026-11-10T04:25:00Z"),
+    tipo: "agua_na_rua", local: "Beco ao lado da escola", observacao: "Água entrando em duas casas.", fotos: 2 }
+])
+
+// ---------------------------------------------------------------------
+// 3. Consultas (tirar um print de cada)
+// ---------------------------------------------------------------------
+
+// Consulta 1: conferir a carga (10 eventos e 3 relatos)
+print("Eventos: " + db.eventos_brutos.countDocuments() + " | Relatos: " + db.relatos.countDocuments())
+
+// Consulta 2: eventos em ALERTA do dispositivo MD-POA-001, do mais recente ao mais antigo
+db.eventos_brutos.find(
+  { device_id: "MD-POA-001", risco: "ALERTA" },
+  { _id: 0, device_id: 1, seq: 1, ts: 1, nivel_cm: 1, chuva_mm_h: 1, risco: 1 }
+).sort({ ts: -1, seq: -1 })
+
+// Consulta 3: por dispositivo e risco, total de eventos, nível máximo e chuva média
+db.eventos_brutos.aggregate([
+  { $group: { _id: { device_id: "$device_id", risco: "$risco" },
+              total: { $sum: 1 },
+              nivel_max_cm: { $max: "$nivel_cm" },
+              chuva_media_mm_h: { $avg: "$chuva_mm_h" } } },
+  { $sort: { "_id.device_id": 1, "_id.risco": 1 } }
+])
+
+// Consulta 4 (cruzamento com o Oracle): relatos de moradores junto do pior
+// evento do mesmo device_id. No Oracle, o mesmo código é dispositivo.codigo.
+db.relatos.aggregate([
+  { $lookup: { from: "eventos_brutos", localField: "device_id",
+               foreignField: "device_id", as: "eventos" } },
+  { $project: { _id: 0, device_id: 1, tipo: 1, local: 1,
+                eventos_no_dispositivo: { $size: "$eventos" },
+                nivel_max_cm: { $max: "$eventos.nivel_cm" } } }
+])

@@ -1,0 +1,182 @@
+[
+  {
+    "device_id": "MD-POA-001",
+    "seq": 1794282380,
+    "ts": {
+      "$date": "2026-11-10T03:46:19Z"
+    },
+    "nivel_cm": 45.0,
+    "chuva_mm_h": 0.4,
+    "temperatura_c": 24.1,
+    "umidade_pct": 62.0,
+    "status": {
+      "nivel": "OK",
+      "chuva": "OK",
+      "umidade": "OK"
+    },
+    "risco": "OK",
+    "reenviado": false
+  },
+  {
+    "device_id": "MD-POA-001",
+    "seq": 1794282381,
+    "ts": {
+      "$date": "2026-11-10T03:46:19Z"
+    },
+    "nivel_cm": 135.0,
+    "chuva_mm_h": 18.0,
+    "temperatura_c": 22.5,
+    "umidade_pct": 91.0,
+    "status": {
+      "nivel": "ATENCAO",
+      "chuva": "ATENCAO",
+      "umidade": "ATENCAO"
+    },
+    "risco": "ATENCAO",
+    "reenviado": false
+  },
+  {
+    "device_id": "MD-POA-001",
+    "seq": 1794282382,
+    "ts": {
+      "$date": "2026-11-10T03:46:19Z"
+    },
+    "nivel_cm": 195.5,
+    "chuva_mm_h": 42.0,
+    "temperatura_c": 21.0,
+    "umidade_pct": 97.0,
+    "status": {
+      "nivel": "ALERTA",
+      "chuva": "ALERTA",
+      "umidade": "ALERTA"
+    },
+    "risco": "ALERTA",
+    "reenviado": false
+  },
+  {
+    "device_id": "MD-POA-001",
+    "seq": 1794282383,
+    "ts": {
+      "$date": "2026-11-10T04:01:19Z"
+    },
+    "nivel_cm": 188.0,
+    "chuva_mm_h": 35.5,
+    "temperatura_c": 20.8,
+    "umidade_pct": 96.0,
+    "status": {
+      "nivel": "ALERTA",
+      "chuva": "ALERTA",
+      "umidade": "ALERTA"
+    },
+    "risco": "ALERTA",
+    "reenviado": false
+  },
+  {
+    "device_id": "MD-POA-001",
+    "seq": 1794282384,
+    "ts": {
+      "$date": "2026-11-10T04:16:19Z"
+    },
+    "nivel_cm": 150.0,
+    "chuva_mm_h": 22.0,
+    "temperatura_c": 20.9,
+    "umidade_pct": 93.0,
+    "status": {
+      "nivel": "ATENCAO",
+      "chuva": "ATENCAO",
+      "umidade": "ATENCAO"
+    },
+    "risco": "ATENCAO",
+    "reenviado": false
+  },
+  {
+    "device_id": "MD-POA-001",
+    "seq": 1794282385,
+    "ts": {
+      "$date": "2026-11-10T04:31:19Z"
+    },
+    "nivel_cm": 110.0,
+    "chuva_mm_h": 9.0,
+    "temperatura_c": 21.4,
+    "umidade_pct": 88.0,
+    "status": {
+      "nivel": "OK",
+      "chuva": "OK",
+      "umidade": "OK"
+    },
+    "risco": "OK",
+    "reenviado": true
+  },
+  {
+    "device_id": "MD-POA-002",
+    "seq": 1794282390,
+    "ts": {
+      "$date": "2026-11-10T03:50:00Z"
+    },
+    "nivel_cm": 60.0,
+    "chuva_mm_h": 3.0,
+    "temperatura_c": 23.0,
+    "umidade_pct": 70.0,
+    "status": {
+      "nivel": "OK",
+      "chuva": "OK",
+      "umidade": "OK"
+    },
+    "risco": "OK",
+    "reenviado": false
+  },
+  {
+    "device_id": "MD-POA-002",
+    "seq": 1794282391,
+    "ts": {
+      "$date": "2026-11-10T04:05:00Z"
+    },
+    "nivel_cm": 125.0,
+    "chuva_mm_h": 16.0,
+    "temperatura_c": 22.1,
+    "umidade_pct": 89.0,
+    "status": {
+      "nivel": "ATENCAO",
+      "chuva": "ATENCAO",
+      "umidade": "OK"
+    },
+    "risco": "ATENCAO",
+    "reenviado": false
+  },
+  {
+    "device_id": "MD-POA-002",
+    "seq": 1794282392,
+    "ts": {
+      "$date": "2026-11-10T04:20:00Z"
+    },
+    "nivel_cm": 182.0,
+    "chuva_mm_h": 31.0,
+    "temperatura_c": 21.6,
+    "umidade_pct": 95.0,
+    "status": {
+      "nivel": "ALERTA",
+      "chuva": "ALERTA",
+      "umidade": "ALERTA"
+    },
+    "risco": "ALERTA",
+    "reenviado": false
+  },
+  {
+    "device_id": "MD-POA-002",
+    "seq": 1794282393,
+    "ts": {
+      "$date": "2026-11-10T04:35:00Z"
+    },
+    "nivel_cm": 95.0,
+    "chuva_mm_h": 7.5,
+    "temperatura_c": 22.0,
+    "umidade_pct": 84.0,
+    "status": {
+      "nivel": "OK",
+      "chuva": "OK",
+      "umidade": "OK"
+    },
+    "risco": "OK",
+    "reenviado": false
+  }
+]

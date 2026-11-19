@@ -1,0 +1,40 @@
+@startuml
+title Marca d'Água - envio de uma leitura até o alerta por e-mail
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+participant "Nó ESP32\nMD-POA-001" as no
+participant "API Gateway\nPOST /leituras" as api
+participant "Lambda\nmarca-dagua-ingestao" as lambda
+database "DynamoDB\nmarca_dagua_leituras" as db
+participant "CloudWatch\nmétrica Alertas" as cw
+participant "SNS\nmarca-dagua-alertas" as sns
+actor "Morador\n(assinante)" as morador
+
+no -> api : HTTPS, JSON + x-api-key
+api -> lambda : invoca (limite 5 req/s)
+
+alt chave inválida ou dispositivo desconhecido
+    lambda --> api : 401
+    api --> no : 401
+else leitura válida
+    lambda -> lambda : valida campos e classifica risco\n(OK, ATENCAO ou ALERTA)
+    lambda -> db : PutItem (device_id, seq)
+    alt seq já gravado
+        db --> lambda : condição falhou
+        lambda --> api : 409
+        api --> no : 409
+    else gravação nova
+        db --> lambda : ok
+        lambda -> cw : métrica Alertas (EMF)
+        lambda --> api : 201 + risco
+        api --> no : 201 + risco
+    end
+end
+
+opt Alertas >= 1 em 1 minuto
+    cw -> sns : alarme passa para ALARM
+    sns -> morador : e-mail de notificação
+end
+@enduml

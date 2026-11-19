@@ -1,0 +1,29 @@
+[
+  {
+    "device_id": "MD-POA-001",
+    "registrado_em": {
+      "$date": "2026-11-10T03:55:00Z"
+    },
+    "tipo": "agua_na_rua",
+    "local": "Rua principal da Ilha",
+    "observacao": "Água na altura do meio-fio."
+  },
+  {
+    "device_id": "MD-POA-001",
+    "registrado_em": {
+      "$date": "2026-11-10T04:10:00Z"
+    },
+    "tipo": "sirene",
+    "observacao": "Alerta sonoro ouvido no local."
+  },
+  {
+    "device_id": "MD-POA-002",
+    "registrado_em": {
+      "$date": "2026-11-10T04:25:00Z"
+    },
+    "tipo": "agua_na_rua",
+    "local": "Beco ao lado da escola",
+    "observacao": "Água entrando em duas casas.",
+    "fotos": 2
+  }
+]

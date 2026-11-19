@@ -1,0 +1,44 @@
+# segredos
+.env
+*.pem
+*.key
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+
+# modelos e dados pesados (o repositório guarda o script que gera ou baixa)
+*.pkl
+*.keras
+*.h5
+data/raw/
+data/interim/
+python-api/data/
+
+# sistema e editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# saídas locais
+*.log
+tmp/
+estatistica/dados/brutos/
+
+# pacote da Lambda gerado por aws/montar_pacote.py
+aws/build/
+
+# dados baixados do INMET pelo notebook de ML
+dados_inmet/
+ml/dados_inmet/
+
+# perfis de navegador e arquivos de trabalho dos visuais
+desafio-aic/visuais/_work/
+
+# videos brutos e editados das entregas (vao para o portal, nao para o repositorio)
+Video Bruto*.mp4
+Video bruto*.mp4
+Video Editado*.mp4
